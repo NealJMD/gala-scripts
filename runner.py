@@ -1,4 +1,5 @@
 import psutil
+import subprocess as sp
 import time
 import datetime
 
@@ -60,9 +61,15 @@ def call_command(command, positionals=[], options={}, logfiles={}, Popen_options
         if len(value) < 1: continue
         formatted_command.append(value)
     for stream_name, filename in logfiles.iteritems():
-        if filename not in ["stdout", "stderr"]: continue
+        if stream_name not in ["stdout", "stderr"]: continue
+        if filename == sp.STDOUT:
+            Popen_options[stream_name] = filename
+            continue
         f = open(filename, 'a')
         Popen_options[stream_name] = f
         Popen_options["close_fds"] = True
+    print "Calling: %s" % (" ".join(formatted_command))
+    if "stdout" in logfiles:
+        print "Logging stdout to %s" % (logfiles["stdout"])
     child = psutil.Popen(formatted_command, **Popen_options)
-    return child    
+    return child

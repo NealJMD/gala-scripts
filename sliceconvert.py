@@ -24,6 +24,7 @@ def slice_3d_array(iterable, row_end, col_end, frame_end,
 
     specified_stack = np.zeros((frames, rows, cols))
     stacked_image_index = frame_start
+    is_ints = True
 
     if hasattr(iterable, '__call__'):
         enumerable = enumerate(iterable())
@@ -32,12 +33,13 @@ def slice_3d_array(iterable, row_end, col_end, frame_end,
     for index, image in enumerable:
 
         if stacked_image_index >= frame_end: break
-
         np_image = np.array(image)
+        if not issubclass(type(np_image[0,0]), np.integer): is_ints = False 
         total_rows, total_cols = np_image.shape
         np_specified = np_image[row_start:row_end, col_start:col_end]
         specified_stack[stacked_image_index, :, :] = np_specified
         stacked_image_index += 1
+    if is_ints: return specified_stack.astype(int)
     return specified_stack
 
 
@@ -53,10 +55,9 @@ def slice_and_convert(input_filename, output_filename,
     elif extension_in.lower() in [".h5"]:
         iterable = read_h5(input_filename, input_stack_path)
     else:
-        raise FileError("%s is not a tif nor an h5!" % (input_filename))
+        raise Exception("%s is not a tif nor an h5!" % (input_filename))
 
-    stack = slice_3d_array(iterable, *slice_3d_args) / float(normalization)
-
+    stack = slice_3d_array(iterable, *slice_3d_args) / normalization
     if extension_out.lower() in [".tif", ".tiff"]:
         write_tif(stack, output_filename)
     elif extension_out.lower() in [".h5"]:
@@ -86,15 +87,20 @@ def write_h5(stack, output_filename, groups, stack_label):
     current_group.create_dataset(stack_label, data=stack, compression='lzf')
     f.close()
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) < 3: 
-        raise Exception( "Usage: python sliceconvert.py input_file output_file rows cols frames [row__start col_start frame_start]")
+        print "Usage: python sliceconvert.py input_file output_file rows cols frames [row__start col_start frame_start]"
+        return
     slice_3d_args = tuple(sys.argv[3:])
-    og = ["volume"]
-#    og = []
-    osl = "predictions"
-#    osl = "stack"
-    slice_and_convert(sys.argv[1], sys.argv[2], normalization=255.0, 
+#    og = ["volume"]
+    og = []
+#    osl = "predictions"
+    osl = "stack"
+#    norm=255.0
+    norm = 1
+    slice_and_convert(sys.argv[1], sys.argv[2], normalization=norm, 
         input_stack_path="stack", output_groups=og, 
         output_stack_label=osl, slice_3d_args=slice_3d_args)
 
+if __name__ == "__main__":
+    main()
