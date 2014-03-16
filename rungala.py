@@ -54,50 +54,50 @@ def get_logfiles(log_dir, experiment_name, err_to_out=True):
     return logfiles
 
 
-def print_paths(*path_args):
-    paths = get_paths(*path_args)
+def print_paths(paths):
     for key, path in paths.iteritems():
         print " -  (%s): %s" % (key, path)
     return
  
 
-def get_paths(task, traintest, size, cues_id, features_id):
+def get_paths(task, traintest, size, volume_id, cues_id, features_id, exec_id="", classifier_volume_id=""):
     paths = {}
 
     # command
     paths["command"] = opj(BIN_PREFIX, task)
 
     # watersheds
-    specifier = ["watersheds", traintest, size]
+    specifier = ["watersheds", traintest, size, volume_id]
     paths["watersheds"] = get_specified_file_path(specifier, H5_EXT)
 
     # groundtruth
     if task == "gala-evaluate": specifier = ["groundtruth", "test", size]
-    else: specifier = ["groundtruth", traintest, size]
+    else: specifier = ["groundtruth", traintest, size, volume_id]
     paths["groundtruth"] = get_specified_file_path(specifier, H5_EXT)
 
     # hypercubes - 4 dimensional images - height, width, frame count, channels
-    specifier = ["hypercubes", traintest, size, cues_id]
+    specifier = ["hypercubes", traintest, size, volume_id, cues_id]
     paths["hypercubes"] = get_specified_file_path(specifier, H5_EXT)
 
     # output
-    specifier = ["output", traintest, size, cues_id, features_id, task]
+    specifier = ["output", traintest, size, volume_id, cues_id, features_id, task]
+    if len(exec_id) > 0: specifier.append(exec_id)
     paths["output_dir"] = opj(DATA_PREFIX, *specifier)
     paths["experiment_name"] = filename_join(*specifier)
     paths["log_dir"] = opj(paths["output_dir"], "logs")
 
     # classifier - for gala-segment
-    specifier = ["output", "train", size, cues_id, features_id, "gala-train"]
+    specifier = ["output", "train", size, classifier_volume_id, cues_id, features_id, "gala-train"]
     paths["classifier"] = get_specified_file_path(specifier, CLASSIFIER_EXT)
 
     # segmentation - for gala-evaluate
-    specifier = ["output", traintest, size, cues_id, features_id, "gala-segment"]
+    specifier = ["output", traintest, size, volume_id, cues_id, features_id, "gala-segment"]
     paths["segmentation"] = "UNIMPLEMENTED" # need to see how it is spit out
 
     return paths
 
 
-def run_gala_train(traintest, size, cues_id, features_id):
+def run_gala_train(traintest, size, volume_id, cues_id, features_id, exec_id="", *args):
     """
     Parameters
     ----------
@@ -109,7 +109,8 @@ def run_gala_train(traintest, size, cues_id, features_id):
     """
     if traintest == "test": raise RuntimeError("Do not train on test data!")
 
-    paths = get_paths("gala-train", traintest, size, cues_id, features_id)
+    paths = get_paths("gala-train", traintest, size, volume_id, cues_id, features_id, exec_id)
+    print_paths(paths)
     command = paths["command"]
     logfiles = get_logfiles(paths["log_dir"], paths["experiment_name"], err_to_out=True)
     positionals = [paths["hypercubes"], paths["groundtruth"]]
@@ -121,6 +122,9 @@ def run_gala_train(traintest, size, cues_id, features_id):
     gala_options["--verbose"] = ""
     gala_options["--show-progress"] = ""
 
+    # gala_options["--profile"] = ""
+    # print "---\nProfiling with cProfile!\n---"
+
     channel_count = len(cues_id.split(ID_DELIMITER))
     if channel_count < 2:
         gala_options["--no-channel-data"] = ""
@@ -129,7 +133,7 @@ def run_gala_train(traintest, size, cues_id, features_id):
     return runner.call_and_monitor_command(command, positionals, gala_options, logfiles)
 
 
-def run_gala_segment(traintest, size, cues_id, features_id):
+def run_gala_segment(traintest, size, volume_id, cues_id, features_id, exec_id="", classifier_volume_id=""):
     """
     Parameters
     ----------
@@ -140,7 +144,12 @@ def run_gala_segment(traintest, size, cues_id, features_id):
     features_id: the id of the features used in training and segmentation
     """
 
-    paths = get_paths("gala-segment", traintest, size, cues_id, features_id)
+    if len(classifier_volume_id) < 1:
+        classifier_volume_id = volume_id
+        print "tesing on training data"
+
+    paths = get_paths("gala-segment", traintest, size, volume_id, cues_id, features_id, exec_id, classifier_volume_id)
+    print_paths(paths)
     command = paths["command"]
     logfiles = get_logfiles(paths["log_dir"], paths["experiment_name"], err_to_out=True)
     positionals = [paths["hypercubes"]]
@@ -165,7 +174,7 @@ def run_gala_segment(traintest, size, cues_id, features_id):
     return runner.call_and_monitor_command(command, positionals, gala_options, logfiles) 
 
 
-def run_gala_evaluate(traintest, size, cues_id, features_id):
+def run_gala_evaluate(traintest, size, volume_id, cues_id, features_id, exec_id=""):
     """
     Parameters
     ----------
@@ -175,7 +184,8 @@ def run_gala_evaluate(traintest, size, cues_id, features_id):
     cues_id: a '+' separated list of cues used in training and segmentation
     features_id: the id of the features used in training and segmentation
     """
-    paths = get_paths("gala-evaluate", traintest, size, cues_id, features_id)
+    paths = get_paths("gala-evaluate", traintest, size, volume_id, cues_id, features_id, exec_id)
+    print_paths(paths)
     command = paths["command"]
     logfiles = get_logfiles(paths["log_dir"], paths["experiment_name"], err_to_out=True)
     positionals = [paths["segmentation"], paths["groundtruth"]]
@@ -199,18 +209,22 @@ def main(args):
     """
 
     if len(args) < 6: 
-        print "Usage: python rungala.py <gala-train|gala-segment|gala-evaluate> <train|test> <size> <cues> <features> [dry_run]"
+        print "Usage: python rungala.py <gala-train|gala-segment|gala-evaluate> \
+<train|test> <size> <volume_id> <cues> <features> \
+[execution_id] [classifier_volume_id] [dry_run]"
         return
-    script, task, traintest, size, cues_id, features_id = tuple(args[0:6])
-    if len(args) > 6: 
-        print_paths(task, traintest, size, cues_id, features_id)
+    task = args[1]
+    gala_args = args[2:]
+    if len(args) > 9: 
+        paths = get_paths(task, *gala_args[:-1])
+        print_paths(paths)
         return
     if task == "gala-train": run_gala = run_gala_train
     elif task == "gala-segment": run_gala = run_gala_segment
     elif task == "gala-evaluate": run_gala = run_gala_evaluate
     else: raise RuntimeError("Unknown task: %s" % (task))
 
-    return run_gala(traintest, size, cues_id, features_id)
+    return run_gala(*gala_args)
 
 if __name__ == '__main__':
     main(sys.argv)

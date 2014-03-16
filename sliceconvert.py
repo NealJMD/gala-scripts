@@ -3,7 +3,17 @@ from libtiff import TIFF
 import numpy as np
 import h5py
 import os, sys
+from gala.morpho import relabel_connected
 
+def ensure_path(path):
+    if os.path.exists(path): return path
+    os.makedirs(path)
+    return path
+
+def ensure_file(path):
+    head, tail = os.path.split(path)
+    ensure_path(head)
+    return path
 
 def slice_3d_array(iterable, row_end, col_end, frame_end, 
                 row_start=0, col_start=0, frame_start=0):
@@ -42,14 +52,26 @@ def slice_3d_array(iterable, row_end, col_end, frame_end,
     if is_ints: return specified_stack.astype(int)
     return specified_stack
 
+def add_2d_derivative_channel(original_stack, concat=True):
+    print "Creating derivative channel from stack of shape %s" % (str(original_stack.shape))
+    stack = np.zeros_like(original_stack)
+    for ii, frame in enumerate(original_stack):
+        grads = np.gradient(frame)
+        for grad in grads:
+            stack[ii, ...] += (grad * grad)
+    stack = np.sqrt(stack)
+    if not concat: return stack
+    return np.concatenate((original_stack[...,np.newaxis], stack[...,np.newaxis]), axis=3)
+         
 
 def slice_and_convert(input_filename, output_filename, 
     normalization=1, input_stack_path="", output_groups=[], 
-    output_stack_label="", slice_3d_args=[]):
+    output_stack_label="", postprocess="", slice_3d_args=[]):
 
     name_in, extension_in = os.path.splitext(input_filename)
     name_out, extension_out = os.path.splitext(output_filename)
 
+    ensure_file(output_filename)
     if extension_in.lower() in [".tif", ".tiff"]:
         iterable = read_tif(input_filename)
     elif extension_in.lower() in [".h5"]:
@@ -57,7 +79,18 @@ def slice_and_convert(input_filename, output_filename,
     else:
         raise Exception("%s is not a tif nor an h5!" % (input_filename))
 
+    print "Read in %s, slicing with args: %s" % (input_filename, str(slice_3d_args))
     stack = slice_3d_array(iterable, *slice_3d_args) / normalization
+    print "Cut down to size %s" % (str(stack.shape))
+    if postprocess == "relabel":
+        print "Ensuring contiguous labels..."
+        stack = relabel_connected(stack)
+    elif postprocess == "derivative":
+        print "Adding derivative channel...",
+        stack = add_2d_derivative_channel(stack, concat=True)
+        print "new shape: %s" % (str(stack.shape))
+
+    print "Writing out to %s" % (output_filename)
     if extension_out.lower() in [".tif", ".tiff"]:
         write_tif(stack, output_filename)
     elif extension_out.lower() in [".h5"]:
@@ -88,19 +121,34 @@ def write_h5(stack, output_filename, groups, stack_label):
     f.close()
 
 def main():
-    if len(sys.argv) < 3: 
-        print "Usage: python sliceconvert.py input_file output_file rows cols frames [row__start col_start frame_start]"
+    usage = "Usage: python sliceconvert.py <labels|values|ders> input_file output_file rows cols frames [row__start col_start frame_start]"
+    if len(sys.argv) < 3:
+        print usage
         return
-    slice_3d_args = tuple(sys.argv[3:])
-#    og = ["volume"]
-    og = []
-#    osl = "predictions"
-    osl = "stack"
-#    norm=255.0
-    norm = 1
-    slice_and_convert(sys.argv[1], sys.argv[2], normalization=norm, 
-        input_stack_path="stack", output_groups=og, 
-        output_stack_label=osl, slice_3d_args=slice_3d_args)
+    slice_3d_args = tuple(sys.argv[4:])
+    if sys.argv[1] == "labels":
+        out_group = []
+        out_stack_label = "stack"
+        in_path = out_stack_label
+        norm = 1
+        postprocess="relabel"
+    elif sys.argv[1] == "values" or sys.argv[1] == "ders":
+        out_group = ["volume"]
+        out_stack_label = "predictions"
+        in_path = "volume/predictions"
+        #out_group = []
+        #out_stack_label = "stack"
+        #in_path = "stack"
+        norm = 255.0
+        if sys.argv[1] == "ders": postprocess = "derivative"
+        else: postprocess = ""
+    else:
+        print usage
+        return
+    slice_and_convert(sys.argv[2], sys.argv[3], normalization=norm, 
+        input_stack_path=in_path, output_groups=out_group,
+        output_stack_label=out_stack_label, postprocess=postprocess,
+        slice_3d_args=slice_3d_args)
 
 if __name__ == "__main__":
     main()
