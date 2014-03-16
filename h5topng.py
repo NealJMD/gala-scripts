@@ -9,9 +9,15 @@ def main(h5_filename, output_dir, color_style="random", key="stack"):
 	color_map = build_color_map(image_stack, color_style)
 	output_pngs(image_stack, color_map, output_dir)
 
-def output_pngs(image_stack, color_map, output_dir):
-	(image_count, width, height) = image_stack.shape
-	for ii in xrange(image_count):
+def output_pngs(image_stack, color_map, output_dir, channel_id=""):
+    print "Handling image_stack with shape %s" % (str(image_stack.shape))
+    if image_stack.ndim > 3:
+        for jj in range(image_stack.shape[image_stack.ndim-1]):
+            output_pngs(image_stack[..., jj], color_map, output_dir, "-"+str(jj))
+        return
+    print "Printing pngs to %s" % (output_dir)
+    (image_count, width, height) = image_stack.shape
+    for ii in xrange(image_count):
 		labels = image_stack[ii, ...]
 		output = np.zeros((width, height, 3))
 		for w in xrange(width):
@@ -19,7 +25,7 @@ def output_pngs(image_stack, color_map, output_dir):
 				colors = color_map[labels[w, h]]
 				for channel, intensity in enumerate(colors):
 					output[w, h, channel] = intensity
-		save_png(output, ii, output_dir)
+		save_png(output, str(ii)+channel_id, output_dir)
 
 def save_png(image_matrix, identifier, output_dir):
 	filename = output_dir + str(identifier) + ".png"
