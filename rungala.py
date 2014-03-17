@@ -11,16 +11,21 @@ DATA_PREFIX = opj(GLOBAL_PREFIX, "data")
 BIN_PREFIX = opj(GLOBAL_PREFIX, "gala/bin/")
 H5_EXT = ".lzf.h5"
 CLASSIFIER_EXT = ".classifier.joblib"
-ID_DELIMITER = "+"
+ID_DELIMITER = "AND"
 FILENAME_PART_DELIMITER = "_"
 TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 def get_features_from_id(features_id):
-    if features_id == "base":
-        return """features.base.Composite(children=[
+
+    base =  """features.base.Composite(children=[
                    features.moments.Manager(),
                    features.histogram.Manager(25, 0, 1, [0.1, 0.5, 0.9]),
-                   features.graph.Manager()])"""
+                   features.graph.Manager()"""
+    ending = "])"
+    if features_id == "base":
+        return base + ending
+    elif features_id == "baseANDinclusion":
+        return base + ",\nfeatures.inclusion.Manager()" + ending
     else:
         raise KeyError("Unrecognized feature_id: %s" % (features_id))
 
@@ -60,7 +65,7 @@ def print_paths(paths):
     return
  
 
-def get_paths(task, traintest, size, volume_id, cues_id, features_id, exec_id="", classifier_volume_id=""):
+def get_paths(task, traintest, size, volume_id, cues_id, features_id, exec_id="", classifier_id=""):
     paths = {}
 
     # command
@@ -81,13 +86,14 @@ def get_paths(task, traintest, size, volume_id, cues_id, features_id, exec_id=""
 
     # output
     specifier = ["output", traintest, size, volume_id, cues_id, features_id, task]
+    if len(classifier_id): specifier.append("classifer-"+classifier_id)
     if len(exec_id) > 0: specifier.append(exec_id)
     paths["output_dir"] = opj(DATA_PREFIX, *specifier)
     paths["experiment_name"] = filename_join(*specifier)
     paths["log_dir"] = opj(paths["output_dir"], "logs")
 
     # classifier - for gala-segment
-    specifier = ["output", "train", size, classifier_volume_id, cues_id, features_id, "gala-train"]
+    specifier = ["output", "train", size, classifier_id, cues_id, features_id, "gala-train"]
     paths["classifier"] = get_specified_file_path(specifier, CLASSIFIER_EXT)
 
     # segmentation - for gala-evaluate
