@@ -121,17 +121,18 @@ def write_h5(stack, output_filename, groups, stack_label):
     f.close()
 
 def main():
-    usage = "Usage: python sliceconvert.py <labels|values|ders> input_file output_file rows cols frames [row__start col_start frame_start]"
+    usage = "Usage: python sliceconvert.py <contlabels|labels|values|ders> input_file output_file rows cols frames [row__start col_start frame_start]"
     if len(sys.argv) < 3:
         print usage
         return
     slice_3d_args = tuple(sys.argv[4:])
-    if sys.argv[1] == "labels":
+    postprocess = ""
+    if sys.argv[1] == "labels" or sys.argv[1] == "contlabels":
         out_group = []
         out_stack_label = "stack"
         in_path = out_stack_label
         norm = 1
-        postprocess="relabel"
+        if sys.argv[1] == "contlabels":  postprocess="relabel"
     elif sys.argv[1] == "values" or sys.argv[1] == "ders":
         out_group = ["volume"]
         out_stack_label = "predictions"
@@ -141,7 +142,6 @@ def main():
         #in_path = "stack"
         norm = 255.0
         if sys.argv[1] == "ders": postprocess = "derivative"
-        else: postprocess = ""
     else:
         print usage
         return
