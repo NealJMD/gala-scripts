@@ -54,14 +54,18 @@ def slice_3d_array(iterable, row_end, col_end, frame_end,
 
 def add_2d_derivative_channel(original_stack, concat=True):
     print "Creating derivative channel from stack of shape %s" % (str(original_stack.shape))
-    stack = np.zeros_like(original_stack)
-    for ii, frame in enumerate(original_stack):
+    if original_stack.ndim > 3: target_stack = original_stack[:,:,:,original_stack.shape[3]-1]
+    else:
+        target_stack = original_stack
+        original_stack = original_stack[...,np.newaxis]
+    stack = np.zeros_like(target_stack)
+    for ii, frame in enumerate(target_stack):
         grads = np.gradient(frame)
         for grad in grads:
             stack[ii, ...] += (grad * grad)
     stack = np.sqrt(stack)
     if not concat: return stack
-    return np.concatenate((original_stack[...,np.newaxis], stack[...,np.newaxis]), axis=3)
+    return np.concatenate((original_stack, stack[...,np.newaxis]), axis=3)
          
 
 def slice_and_convert(input_filename, output_filename, 
@@ -140,7 +144,7 @@ def main():
         #out_group = []
         #out_stack_label = "stack"
         #in_path = "stack"
-        norm = 255.0
+        norm = 1
         if sys.argv[1] == "ders": postprocess = "derivative"
     else:
         print usage
