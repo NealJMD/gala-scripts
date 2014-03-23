@@ -1,0 +1,298 @@
+{
+    "topleft": {
+        "topleft": {
+            "baseANDinclusion": {
+                "idsia": 0.10972995487046211,
+                "idsiaANDder": 0.16642513233855616
+            },
+            "base": {
+                "idsia": 0.1138186622065066,
+                "idsiaANDder": 0.15648486411267548
+            },
+            "baseANDcontact": {
+                "idsia": 0.11678485224726642,
+                "idsiaANDder": 0.11281689916436033
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.11475321261427129,
+                "idsiaANDder": 0.11276278929015138
+            }
+        },
+        "bottomleft": {
+            "baseANDinclusion": {
+                "idsia": 0.23381688737087769,
+                "idsiaANDder": 0.22000205161979147
+            },
+            "base": {
+                "idsia": 0.22963183836706091,
+                "idsiaANDder": 0.24233052729448323
+            },
+            "baseANDcontact": {
+                "idsia": 0.18430577255065173,
+                "idsiaANDder": 0.18993142315296896
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.1845021031679217,
+                "idsiaANDder": 0.18723900025457152
+            }
+        },
+        "topright": {
+            "baseANDinclusion": {
+                "idsia": 0.20957358191726472,
+                "idsiaANDder": 0.19979003988906907
+            },
+            "base": {
+                "idsia": 0.21276078171003343,
+                "idsiaANDder": 0.20604983322580417
+            },
+            "baseANDcontact": {
+                "idsia": 0.18369714723920172,
+                "idsiaANDder": 0.19724841706538121
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.190380750777152,
+                "idsiaANDder": 0.19309840199761663
+            }
+        },
+        "bottomright": {
+            "baseANDinclusion": {
+                "idsia": 0.2214814303681899,
+                "idsiaANDder": 0.21234926546316057
+            },
+            "base": {
+                "idsia": 0.21389101350528184,
+                "idsiaANDder": 0.21735109741300807
+            },
+            "baseANDcontact": {
+                "idsia": 0.1748646515822041,
+                "idsiaANDder": 0.18348295976122453
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.19906411514826605,
+                "idsiaANDder": 0.18397829186736714
+            }
+        }
+    },
+    "bottomleft": {
+        "topleft": {
+            "baseANDinclusion": {
+                "idsia": 0.057429807691235735,
+                "idsiaANDder": 0.057963644998074715
+            },
+            "base": {
+                "idsia": 0.29270357735138219,
+                "idsiaANDder": 0.068765624397737146
+            },
+            "baseANDcontact": {
+                "idsia": 0.068918724279505184,
+                "idsiaANDder": 0.064920479081406302
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.06819374798202682,
+                "idsiaANDder": 0.27276115022975567
+            }
+        },
+        "bottomleft": {
+            "baseANDinclusion": {
+                "idsia": 0.044099120844857898,
+                "idsiaANDder": 0.038532811555246016
+            },
+            "base": {
+                "idsia": 0.056354745192034872,
+                "idsiaANDder": 0.034768969478918832
+            },
+            "baseANDcontact": {
+                "idsia": 0.037188021801250137,
+                "idsiaANDder": 0.035649350716190575
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.037326440510871528,
+                "idsiaANDder": 0.0339809825701608
+            }
+        },
+        "topright": {
+            "baseANDinclusion": {
+                "idsia": 0.28934862445206977,
+                "idsiaANDder": 0.28825173043679642
+            },
+            "base": {
+                "idsia": 0.067182521524359773,
+                "idsiaANDder": 0.27470198113060451
+            },
+            "baseANDcontact": {
+                "idsia": 0.050069112321363907,
+                "idsiaANDder": 0.29176314571030881
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.28596445950279459,
+                "idsiaANDder": 0.05693868303024574
+            }
+        },
+        "bottomright": {
+            "baseANDinclusion": {
+                "idsia": 0.061388718885827531,
+                "idsiaANDder": 0.057188468514718482
+            },
+            "base": {
+                "idsia": 0.066292324302547945,
+                "idsiaANDder": 0.067483335183930238
+            },
+            "baseANDcontact": {
+                "idsia": 0.069306512215247307,
+                "idsiaANDder": 0.066080638610480302
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.052898676966551261,
+                "idsiaANDder": 0.080116569419248496
+            }
+        }
+    },
+    "topright": {
+        "topleft": {
+            "baseANDinclusion": {
+                "idsia": 0.17085032285611401,
+                "idsiaANDder": 0.16948497742156232
+            },
+            "base": {
+                "idsia": 0.15382205096491952,
+                "idsiaANDder": 0.15562715126691884
+            },
+            "baseANDcontact": {
+                "idsia": 0.17308905734409963,
+                "idsiaANDder": 0.18325185706793312
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.16892993802435552,
+                "idsiaANDder": 0.16929740942324645
+            }
+        },
+        "bottomleft": {
+            "baseANDinclusion": {
+                "idsia": 0.17163275987257665,
+                "idsiaANDder": 0.16658331807508031
+            },
+            "base": {
+                "idsia": 0.16791412858127619,
+                "idsiaANDder": 0.17081379064051949
+            },
+            "baseANDcontact": {
+                "idsia": 0.1679207478786966,
+                "idsiaANDder": 0.16720477774002596
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.17696707032015402,
+                "idsiaANDder": 0.19692434287168392
+            }
+        },
+        "topright": {
+            "baseANDinclusion": {
+                "idsia": 0.10793554728975874,
+                "idsiaANDder": 0.10545972871974618
+            },
+            "base": {
+                "idsia": 0.10311839406280432,
+                "idsiaANDder": 0.11940502046714097
+            },
+            "baseANDcontact": {
+                "idsia": 0.10384061759341989,
+                "idsiaANDder": 0.10621643870172714
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.11087367968677664,
+                "idsiaANDder": 0.10405826757963144
+            }
+        },
+        "bottomright": {
+            "baseANDinclusion": {
+                "idsia": 0.17658026417739903,
+                "idsiaANDder": 0.17210300783703858
+            },
+            "base": {
+                "idsia": 0.16553389788770634,
+                "idsiaANDder": 0.16933664139803328
+            },
+            "baseANDcontact": {
+                "idsia": 0.16461593022727894,
+                "idsiaANDder": 0.16654687692452841
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.17000258070316998,
+                "idsiaANDder": 0.16469005557275418
+            }
+        }
+    },
+    "bottomright": {
+        "topleft": {
+            "baseANDinclusion": {
+                "idsia": 0.16534764855143014,
+                "idsiaANDder": 0.16109248965727141
+            },
+            "base": {
+                "idsia": 0.15885454240978159,
+                "idsiaANDder": 0.17636086966820985
+            },
+            "baseANDcontact": {
+                "idsia": 0.16962978108035709,
+                "idsiaANDder": 0.16323356054085691
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.16468896614673778,
+                "idsiaANDder": 0.15412525616671335
+            }
+        },
+        "bottomleft": {
+            "baseANDinclusion": {
+                "idsia": 0.1729366924789576,
+                "idsiaANDder": 0.16148057979693498
+            },
+            "base": {
+                "idsia": 0.16370534238025058,
+                "idsiaANDder": 0.16513423572918207
+            },
+            "baseANDcontact": {
+                "idsia": 0.16030110008927434,
+                "idsiaANDder": 0.19776172082716104
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.16709468460095278,
+                "idsiaANDder": 0.15985770059998272
+            }
+        },
+        "topright": {
+            "baseANDinclusion": {
+                "idsia": 0.16879246922140001,
+                "idsiaANDder": 0.17475833280278497
+            },
+            "base": {
+                "idsia": 0.17949182752377357,
+                "idsiaANDder": 0.16468568673898276
+            },
+            "baseANDcontact": {
+                "idsia": 0.17827673723645288,
+                "idsiaANDder": 0.27189557180959467
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.26371277314365182,
+                "idsiaANDder": 0.17831305244810713
+            }
+        },
+        "bottomright": {
+            "baseANDinclusion": {
+                "idsia": 0.11172347716884801,
+                "idsiaANDder": 0.11512896846411802
+            },
+            "base": {
+                "idsia": 0.11519823398646589,
+                "idsiaANDder": 0.11025173189484527
+            },
+            "baseANDcontact": {
+                "idsia": 0.11129129560424145,
+                "idsiaANDder": 0.10750973295514488
+            },
+            "baseANDinclusionANDcontact": {
+                "idsia": 0.11249694844416225,
+                "idsiaANDder": 0.10861099390728213
+            }
+        }
+    }
+}
