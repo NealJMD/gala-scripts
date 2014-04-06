@@ -19,6 +19,8 @@ FILENAME_PART_DELIMITER = "_"
 ALL_VOLUME_IDS = ["topleft", "topright", "bottomleft", "bottomright"]
 TIMESTAMP = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+DEFAULT_CLASSIFIER_VOLUME = "quarter"
+
 def get_features_from_id(features_id):
 
     features =  "features.base.Composite(children=[\n"
@@ -41,7 +43,21 @@ def get_features_from_id(features_id):
     if "contact" in feature_ids:
         features += ",\nfeatures.contact.Manager([0.1, 0.5, 0.9])"
         recognized_feature_ids.append("contact")
-
+    if "direction" in feature_ids:
+        features += ",\nfeatures.direction.Manager(5, 110, 500, 10)"
+        recognized_feature_ids.append("direction")
+    if "stage" in feature_ids:
+        features += ",\nfeatures.stage.Manager()"
+        recognized_feature_ids.append("stage")
+    if "skeleton3n" in feature_ids:
+        features += ",\nfeatures.skeleton.Manager(5,3)"
+        recognized_feature_ids.append("skeleton3n")
+    if "skeleton2n" in feature_ids:
+        features += ",\nfeatures.skeleton.Manager(5,2)"
+        recognized_feature_ids.append("skeleton2n")
+    if "skeleton" in feature_ids:
+        features += ",\nfeatures.skeleton.Manager(5, 1)"
+        recognized_feature_ids.append("skeleton")
     if set(feature_ids) != set(recognized_feature_ids):
         raise KeyError("Unrecognized feature_id! Of %s, recognized %s" % (
                 str(feature_ids), str(recognized_feature_ids)))
@@ -113,7 +129,7 @@ def get_paths(task, traintest, size, volume_id, cues_id, features_id, exec_id=""
     paths["log_dir"] = opj(paths["output_dir"], "logs")
 
     # classifier - for gala-segment
-    specifier = ["output", "train", "quarter", classifier_id, cues_id, features_id, "gala-train"]
+    specifier = ["output", "train", DEFAULT_CLASSIFIER_VOLUME, classifier_id, cues_id, features_id, "gala-train"]
     if len(exec_id) > 0: specifier.append(exec_id)
     paths["classifier"] = get_specified_file_path(specifier, CLASSIFIER_EXT)
 
@@ -205,7 +221,7 @@ def run_gala_segment(traintest, size, volume_id, cues_id, features_id, exec_id="
         gala_options["--single-channel"] = ""
 
     gala_options["--classifier"] = paths["classifier"]
-    gala_options["--thresholds"] = " ".join([str(x/10.) for x in range(0,11)]) # 0-1 by 0.1
+    gala_options["--thresholds"] = "0.5" #" ".join([str(x/10.) for x in range(0,11)]) # 0-1 by 0.1
     gala_options["--no-raveler-export"] = ""
     gala_options["--no-graph-json"] = ""
 
@@ -279,7 +295,8 @@ def main(args):
         print_paths(paths)
         return
     if task == "gala-train":
-        return run_gala_train(*gala_args)
+        status = run_gala_train(*gala_args)
+        print "gala-train call exited with status %d" % (status)
     elif task == "gala-segment": # supports parallelism
         children = run_gala_segment(*gala_args)
         for child in children: child.wait()
