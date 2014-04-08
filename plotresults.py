@@ -3,6 +3,19 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 
+abbrevs = {}
+abbrevs["skeleton"] = "sk"
+abbrevs["skeleton2n"] = "sk2"
+abbrevs["skeleton3n"] = "sk3"
+abbrevs["squiggliness"] = "sq"
+abbrevs["stage"] = "st"
+abbrevs["base"] = "b"
+abbrevs["contact"] = "c"
+abbrevs["inclusion"] = "i"
+
+abbrevs["idsia"] = "i"
+abbrevs["der"] = "d"
+
 def plot_points(plottable, ylabel=""):
 	fig = plt.figure()
 	for ii, test_set in enumerate(plottable.keys()):
@@ -31,6 +44,23 @@ def plot_boxplots(plottable, title=""):
 	fig.suptitle(title, fontsize=24)
 	plt.show()
 
+def plot_memory(args):
+	scaling_factor = float(1024**3) # gigabytes
+	t_scale_factor = float(60**2) # hours
+	memlog = np.array(load_memory_log(args.data_file)) / scaling_factor
+	ax = plt.subplot(111)
+	if len(args.compare_to) > 0:
+		for path in args.compare_to:
+			complog = np.array(load_memory_log(path)) / scaling_factor
+			plt.plot(np.arange(len(complog))/t_scale_factor, complog, lw=2)
+			plt.plot(np.arange(len(memlog))/t_scale_factor, memlog, lw=2)
+	else:
+		plt.plot(np.arange(len(memlog)), memlog, lw=2)
+	plt.xlabel("runtime (hours)")
+	plt.ylabel("memory used (GB)")
+	plt.title("Memory usage training on topleft quarter")
+	plt.show()
+
 def plot_bar_plots(keyed_values, title="", xlabel="", ylabel=""):
 	fig = plt.figure()
 	values = [v for k,v in keyed_values.iteritems()]
@@ -55,7 +85,11 @@ def abbreviate_feature_name(name, feature_delimiter=",", component_delimiter=": 
 	abbrev = []
 	for component in name.split("+"):
 		label = []
-		for feature in component.split("AND"): label.append(feature[0])
+		for feature in component.split("AND"): 
+			if feature in abbrevs:
+				label.append(abbrevs[feature])
+			else:
+				label.append(feature[0])
 		abbrev.append(feature_delimiter.join(label))
 	return component_delimiter.join(abbrev)
 
@@ -101,24 +135,57 @@ def compare_features(results, comparison="features", features=None, cues=None, s
 						results[test_set][train_set][feature][cue])
 	return plottable
 
-def compare_to_base(results, base_feature="base", base_cue="idsia"):
+def compare_to_base(results, base_feature="base", base_cue="idsia", skip_train=True):
 	wins = {}
 	totals = {}
 	for test_set, d1 in results.iteritems():
 		for train_set, d2 in d1.iteritems():
+			if test_set == train_set and skip_train: continue
 			for feature, d3 in d2.iteritems():
 				for cue, d4 in d3.iteritems():
 					keystr = feature+"+"+cue
 					if keystr not in totals: totals[keystr] = 0
-					totals[keystr] += 1
 					if keystr not in wins: wins[keystr] = 0
-					if (results[test_set][train_set][feature][cue] >
+					totals[keystr] += 1
+					if (results[test_set][train_set][feature][cue] <
 					   results[test_set][train_set][base_feature][base_cue]):
-					   wins[keystr] += 1
+						wins[keystr] += 1
 	rates = {}
 	for key in totals.keys():
 		rates[key] = float(wins[key])/totals[key]
 	return rates
+
+def compare_cues(results, cue1, cue2, skip_features=[], skip_train=True):
+	wins = {}
+	totals = {}
+	for test_set, d1 in results.iteritems():
+		for train_set, d2 in d1.iteritems():
+			if test_set == train_set and skip_train: continue
+			for feature, d3 in d2.iteritems():
+				if feature in skip_features: continue
+				keystr = feature
+				if keystr not in totals: totals[keystr] = 0
+				totals[keystr] += 1
+				if keystr not in wins: wins[keystr] = 0
+				try:
+					if (results[test_set][train_set][feature][cue1] <
+					   results[test_set][train_set][feature][cue2]):
+					   wins[keystr] += 1
+				except Exception as e:
+					print "fucked up on %s with %s" % (feature, cue2)
+	rates = {}
+	for key in totals.keys():
+		rates[key] = float(wins[key])/totals[key]
+	return rates
+
+def load_memory_log(path):
+	f = file(path, "r")
+	memlog = []
+	for l in f:
+		line = l.strip()
+		if not line.isdigit(): continue
+		memlog.append(int(line))
+	return memlog
 
 def load_json_file(path):
     f = file(path, "r")
@@ -128,15 +195,37 @@ def load_json_file(path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("results_json", type=str,
+    parser.add_argument("data_file", type=str,
                     help="Path to the json_file")
+    parser.add_argument("--memory", action="store_true",
+                    help="show directions")
+    parser.add_argument("--compare-to", nargs="+", type=str, default="",
+                    help="path to memlog to compare against")
     args = parser.parse_args()
-    results = load_json_file(args.results_json)
-    plot_bar_plots(compare_to_base(results), "Rate of outperforming base features",
-    		"feature set", "fraction of train set/test set combinations\n in which specified feature set outperforms base features")
-    for poi in ["cues+features", "features", "cues"]:
-    	plot_boxplots(compare_features(results, comparison=poi), "Comparison of "+poi)
 
+    if args.memory: plot_memory(args)
+    else: plot_results(args)
+
+def plot_results(args):
+    results = load_json_file(args.data_file)
+
+    # cue1 = "idsia"; cue2 = "idsiaANDder"
+    # plot_bar_plots(compare_cues(results, cue1, cue2, skip_features=["baseANDdirection", "baseANDinclusionANDdirection"]),
+    # 		 "Rate of %s outperforming %s" % (cue1, cue2),
+    # 		"feature set", 
+    # 		"fraction of train set/test set combinations\n in which specified feature does better running of %s than %s" % (cue1, cue2))
     
+	# features=["base", "baseANDinclusion", "baseANDdirection", "baseANDsquiggliness", "baseANDcontact", "baseANDskeleton"])
+
+    comparison_feature = "base"
+    comparison_cue = "idsia"
+    plot_bar_plots(compare_to_base(results, comparison_feature, comparison_cue),
+    		 "Rate of outperforming %s on %s" % (comparison_feature, comparison_cue),
+    		"feature set", "fraction of train set/test set combinations\n in which specified feature set outperforms base features")
+
+    for poi in ["features"]:
+    	plot_boxplots(compare_features(results, comparison=poi, cues=["idsia"]), "Comparison of "+poi)
+
+
 if __name__ == '__main__':
     main()
