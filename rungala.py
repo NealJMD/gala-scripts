@@ -135,6 +135,7 @@ def get_paths(task, traintest, size, volume_id, cues_id, features_id, exec_id=""
 
     # segmentation - for gala-evaluate
     specifier = ["output", traintest, size, volume_id, cues_id, features_id, "gala-segment", classifier_name]
+    if len(exec_id) > 0: specifier.append(exec_id)
     paths["segmentation"] = get_specified_file_path(specifier, SEGMENTATION_EXT)
     
     return paths
