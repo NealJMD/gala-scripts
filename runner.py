@@ -3,9 +3,10 @@ import subprocess as sp
 import time
 import datetime
 
+OOM_KILL_EXIT_CODE = -9
 
 def call_and_monitor_command(command, positionals=[], options={}, logfiles={},
-        Popen_options={}, poll_delay=1):
+        Popen_options={}, poll_delay=1, aggressive=True):
     """
     Run a command as specified. Log information about memory usage.
     This command is blocking and returns the return code of the command.
@@ -16,13 +17,19 @@ def call_and_monitor_command(command, positionals=[], options={}, logfiles={},
         raise KeyError("call_and_monitor_usage needs 'performance' logfile")
     f = open(logfiles["performance"], 'w')
     f.close() # test to make sure logfile works
-    child = call_command(command, positionals=positionals, options=options,
-                             logfiles=logfiles, Popen_options=Popen_options)
     memory_usage = []
-    while child.poll() == None:
-        ram_useage, current_memory_usage = child.get_memory_info()
-        memory_usage.append(str(current_memory_usage))
-        time.sleep(poll_delay)
+    is_first_attempt = True
+    oom_killed = False
+
+    while((oom_killed and aggressive) or is_first_attempt):
+        is_first_attempt = False
+        child = call_command(command, positionals=positionals, options=options,
+                                 logfiles=logfiles, Popen_options=Popen_options)
+        while child.poll() == None:
+            ram_useage, current_memory_usage = child.get_memory_info()
+            memory_usage.append(str(current_memory_usage))
+            time.sleep(poll_delay)
+        oom_killed = (child.returncode == OOM_KILL_EXIT_CODE)
     finish_time = time.time()
     running_time = child.create_time - finish_time
     start_time = datetime.datetime.fromtimestamp(child.create_time).strftime("%Y-%m-%d %H:%M:%S")
